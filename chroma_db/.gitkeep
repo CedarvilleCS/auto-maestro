@@ -1,0 +1,2 @@
+This file keeps the chroma_db directory in Git even when the database is not present.
+Delete the contents of this directory freely; the RAG setup will recreate data as needed.

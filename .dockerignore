@@ -1,0 +1,22 @@
+# Python virtual environments
+.venv
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Markdown/docs
+*.md
+*.pdf
+
+# Logging
+*.log
+
+# Formatting/Linting
+.flake8
+.pre-commit-config.yaml
+
+# Other
+.env.example
+.env

@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Backend",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "fastapi",
+            "args": [
+                "dev",
+                "packages/backend/src/backend/main.py",
+                "--port",
+                "3000"
+            ],
+            "envFile": "${workspaceFolder}/.env.dev"
+        }
+    ]
+}

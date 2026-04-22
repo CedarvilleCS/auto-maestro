@@ -1,0 +1,3 @@
+FROM ghcr.io/documentdb/documentdb/documentdb-local:latest
+
+COPY data/db_init_scripts/ /init_doc_db.d/

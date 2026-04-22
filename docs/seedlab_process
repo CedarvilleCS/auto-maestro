@@ -1,0 +1,229 @@
+Lab setup
+	- Network has two subnets
+		○ External: 10.8.0.0/24
+		○ Internal: 192.168.20.0/24
+	- Router firewall connects the two and uses NAT and iptables to control traffic
+	- Host IP 10.8.0.1 is not a container but given to the host machine
+	- To reach the internet from the hosts in both subnets, packets must be routed to 10.8.0.1
+	- HOSTS
+		○ Router (firewall) -- 10.8.0.11
+		○ A: 10.8.0.5
+		○ A1: 10.8.0.6
+		○ A2: 10.8.0.99
+		○ B: 192.168.20.99
+		○ B1: 192.168.20.5
+		○ B2: 192.168.20.6
+
+Router Configuration (built in to docker file)
+	- NAT rule 
+		○ `iptables -t nat -A POSTROUTING ! -d 10.8.0.0/24 -j MASQUERADE -o eth0`
+		○ Outbound packets have their source replaced by 10.8.0.11
+		○ Traffic within 10.8.0.0/24 is untouched
+	- Firewall rules
+		○ # Ingress: allow SSH only
+		○ `iptables -A FORWARD -i eth0 -p tcp -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+		○ iptables -A FORWARD -i eth0 -p tcp --dport 22 -j ACCEPT
+		○ iptables -A FORWARD -i eth0 -p tcp -j DROP
+		○ # Egress: block example.com
+		○ iptables -A FORWARD -i eth1 -d 93.184.216.0/24 -j DROP
+		○ Meaning
+			§ Rule 1: allows TCP packets to come from an established connection
+			§ Rule 2: allows SSH in bound
+			§ Rule 3: drops all other TCP packets
+			§ Rule 4: prevents the internal host from sending packets to external host www.example.com
+BEGIN LAB
+	- Run `./scripts/up.sh` to get the containers running (or docker compose up -d)
+		○ `docker ps` to confirm containers are running
+	- Get into router (firewall) container and confirm interfaces and Ips
+		○ docker exec -it router-firewall bash
+		○ ip -br address
+			§ Eth1 should be 192.168.20.0/24
+			§ Eth0 should be 10.8.0.0/24
+	- Confirm iptables NAT and FORWARD rules on router
+		○ `iptables -t nat -S`
+		○ Rules should be in place from docker file
+			§ 
+		
+Task 1: Static Port Forwarding
+		○ Use static port forwarding to evade firewall restriction using ssh to create a static port forwarding tunnel between host A (external network) and host B (internal network)
+		○ GOAL: expose B1's telnet (192.168.20.5:23) on external A at 10.8.0.5:2222 via an SSH tunnel through B (192.168.20.99). Then capture traffic and identify the three TCP connections involved
+	- Start a telnet server on B1
+		○ docker exec -it B1-192.168.20.5 bash
+		○ ss -ltnp | grep :23
+	- Create SSH static port forward on A
+		○ docker exec -it A-10.8.0.99 bash
+		○ ssh -4NT -L 0.0.0.0:2222:192.168.20.5:23 root@192.168.20.99 &
+			§ (yes)
+	- Test connectivity from A, A1, and A2
+		○ # from host
+		○ docker exec -it A1-10.8.0.5 bash
+		○ telnet 10.8.0.99 2222
+		○ 
+	- Repeat on A and A2
+		○ #  on A
+		○ telnet 127.0.0.1 2222
+		○ # on host
+		○ docker exec -it A2-10.8.0.6 bash
+		○ telnet 10.8.0.99 2222
+	- Capture Packets from router
+		○ docker exec -it router-firewall bash
+		○ tcpdump -i any -n tcp and \(port 22 or port 2222 or port 23\)
+		○ Redo the telnet commands for the packets to show up
+		○ 
+
+	- Answer to questions
+		○ TCP connections
+			§ Client --> A (port 2222)
+			§ A <--> B (SSH tunnel)
+			§ B --> B1 (telnet)
+		○ Evades Firewall by encapsulating the telnet traffic inside an SSH connection, the firewall only sees a legitimate SSH session between A and B
+
+Task 2: Dynamic Port Forwarding
+	- Goal: use SSH dynamic port forwarding (SOCKS5 proxy) to bypass the egress firewall that blocks certain websites (www.example.com).
+	- Confirm Router's Egress Rules
+		○ docker exec -it router-firewall bash
+		○ iptables -L FORWARD -n -v | grep DROP
+		○ 
+	- Verify that blocked sites are inaccessible from inside internal network
+		○ docker exec -it B1-192.168.20.5 bash
+		○ curl http://example.com
+	- Create a dynamic SSH tunnel (SOCKS5 proxy)
+		○ Making a tunnel from B (192.168.20.99)--> A (10.8.0.99)
+		○ docker exec -it B-192.168.20.99 bash
+		○ ssh -4NT -D 0.0.0.0:1080 root@10.8.0.99
+			§ (yes)
+	- Test the tunnel with curl from any internal host
+		○ docker exec -it B1-192.168.20.5 bash
+		○ curl --proxy socks5h://192.168.20.99:1080 http://example.com
+		○ Before and after
+			§ 
+		○ Same thing for B2
+	- Capture Evidence on Router
+		○ docker exec -it router-firewall bash
+		○ tcpdump -i any -n tcp and \(port 22 or port 1080 or port 80\)
+		○ Rerun curl command to see packets
+		○ 
+		○ tcpdump packets on port 22 showing HTTP traffic encapsulated in SSH tunnel.
+		○ The [P.] packets confirm encrypted HTTP data traveling through the SSH tunnel on port 22; no direct HTTP (port 80) packets are visible, demonstrating successful firewall evasion.
+	- Answer to Questions
+		○ Which computer makes the real connection?
+			§ A (10.8.0.99) initiates TCP connection to the web server
+		○ How does it know where to connect?
+			§ SOCKS5 protocol tells A the destination hostname/IP, B forwards that info through the SSH tunnel
+		○ Firewall Bypass 
+			§ The egress firewall on 192.168.20.0/24 sees only SSH traffic from B to A so it can't block the tunneled HTTP requests
+Task 2.2: Testing the Tunnel Using Browser
+	- Keep SOCKS proxy on B running
+	- Configure Firefox to use the SOCKS5 proxy
+		○ Open Firefox on the host VM
+		○ In the address bar type about:preferences and press Enter.
+		○ Scroll to Network Settings and click Settings
+		○ Choose Manual proxy configuration.
+		○ In the SOCKS Host field put: 192.168.20.99 and Port 1080.
+		○ Select SOCKS v5 and check Proxy DNS when using SOCKS v5
+		○ Click OK.
+		○ 
+	- Start tcpdump on the router 
+		○ docker exec -it router-firewall bash
+		○ tcpdump -i any -n tcp and \(port 22 or port 80\)
+	- Back in Firefox, go to example.com or any blocked website
+	- View packets -- should find packets like the following
+		01:29:53.469311 IP 192.168.20.99.44662 > 10.8.0.99.22: Flags [P.], length 100
+		01:29:53.493950 IP 10.8.0.99.22 > 192.168.20.99.44662: Flags [P.], length 44
+		01:29:53.495974 IP 192.168.20.99.44662 > 10.8.0.99.22: Flags [P.], length 2600
+	- Break the tunnel and refresh Firefox
+	- Cleanup
+		○ Go back to about:preferences 
+		○ Network settings
+		○ Select no proxy
+		○ OK
+Task 2.3: Writing a SOCKS Client Using Python
+		○ GOAL: write and run a simple Python script that connects www.example.com through the SOCKS5 proxy running on B (192.168.20.99:1080), retrieves the HTTP header or page, and prints the output
+	- Rerun Dynamic SSH tunnel on B 
+		○ ssh -4NT -D 0.0.0.0:1080 root@10.8.0.99
+	- Install socks module on B1 (if needed)
+		○ docker exec -it B1-192.168.20.5 bash
+		○ apt-get update
+		○ apt-get install -y python3-pip
+		○ pip3 install PySocks
+	- Create and run the Python SOCKS client in the internal network -- I'm using B1
+		○ nano simple_socks_client.py
+		#!/usr/bin/env python3
+		import socks
+		import socket
+		
+		# Connect via the SOCKS5 proxy running on B
+		proxy_ip = "192.168.20.99"
+		proxy_port = 1080
+		
+		target_host = "www.example.com"
+		target_port = 80
+		
+		# Create SOCKS socket and set proxy
+		s = socks.socksocket()
+		s.set_proxy(socks.SOCKS5, proxy_ip, proxy_port)
+		
+		# Connect to target through proxy
+		s.connect((target_host, target_port))
+		
+		# Send basic HTTP GET request
+		request = (
+		    b"GET / HTTP/1.0\r\n"
+		    b"Host: www.example.com\r\n"
+		    b"User-Agent: Python-SOCKS\r\n\r\n"
+		)
+		s.sendall(request)
+		
+		# Receive and print response (first few lines)
+		response = s.recv(4096)
+		print(response.decode(errors="ignore"))
+		
+		s.close()
+		○ Save and run it
+			§ python3 simple_socks_client.py
+		○ 
+	- Capture Traffic Like Before with tcpdump on the router
+		○ tcpdump -i any -n tcp and \(port 22 or port 1080 or port 80\)
+
+Task 3: Virtual Private Network (VPN) 
+Task 3.1: Bypassing Ingress Firewall using VPN over SSH
+		○ Goal: create an encrypted VPN tunnel between host A (10.8.0.99) and host B (192.168.20.99) so that packets can move freely between the external and internal networks despite the router's ingress rules blocking most inbound TCP traffic
+	- Verify SSH permissions on B
+		○ docker exec -it B-192.168.20.99 bash
+		○ grep -E "PermitRootLogin|PermitTunnel" /etc/ssh/sshd_config
+		○ Should say "PermitRootLogin yes" and "PermitTunnel yes"
+	- Create the VPN tunnel from A to B
+		○ docker exec -it A-10.8.0.99 bash
+		○ ssh -w 0:0 root@192.168.20.99 \
+		  "PermitLocalCommand=yes" \
+		  "LocalCommand=ip addr add 192.168.53.88/24 dev tun0 && ip link set tun0 up" \
+		  "RemoteCommand=ip addr add 192.168.53.99/24 dev tun0 && ip link set tun0 up"
+		○ After running, it will ask for your root password
+	- Capture Packets on Router
+		○ docker exec -it router-firewall bash
+		○ tcpdump -i any -n host 192.168.53.99 or host 192.168.53.88 
+	- Test VPN Connectivity from A to B, B1, B2
+		○ telnet 192.168.20.99 23
+		○ telnet 192.168.20.5 23
+		○ telnet 192.168.20.6 23
+		○ Go back to router and view captured packets
+	- Questions
+		○ The VPN disguises all traffic as permitted SSH traffic
+Task 3.2: Bypassing Egress Firewall 
+	- Create the VPN tunnel with B as client and A as server
+		○ Run on B
+		○ docker exec -it B-192.168.20.99 bash
+		○ ssh -w 0:0 root@10.8.0.99 \
+		  -o "PermitLocalCommand=yes" \
+		  -o "LocalCommand=ip tuntap add dev tun0 mode tun; ip addr add 192.168.53.88/24 dev tun0; ip link set tun0 up" \
+		  -o "RemoteCommand=ip tuntap add dev tun0 mode tun; ip addr add 192.168.53.99/24 dev tun0; ip link set tun0 up"
+		○ Enter password
+	- Set up NAT (MASQUERADE) on the VPN server (A)
+		○ docker exec -it A-10.8.0.99 bash
+		○ iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0
+	- From internal hosts (B, B1, B2) access blocked sites
+		○ docker exec -it B1-192.168.20.5 bash
+		○ curl http://example.com
+	- Capture packet traces (router or A) while testing
+		○ docker exec -it router-firewall bash
+		○ tcpdump -i any -n tcp and host 10.8.0.99 or host 192.168.53.88

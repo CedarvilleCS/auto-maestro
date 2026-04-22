@@ -1,0 +1,106 @@
+# docker-compose.yml
+version: "3.8"
+
+services:
+  backend:
+    image: automaestro/backend
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+      args:
+        - BASE_IMAGE
+        - BACKEND_PORT
+        - FASTAPI_RUN_MODE=dev
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_PORT=10260
+    # This network and the DNS server below were originally used for a groq tunnel.
+    # Remove this network block and the `networks` entry below when running fully local.
+    networks:
+      groq-tunnel:
+        ipv4_address: 192.168.1.2
+      net-192.168.21.0:
+        ipv4_address: 192.168.21.25
+    dns:
+      - 1.1.1.1
+
+  frontend:
+    image: automaestro/frontend
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+      args:
+        - BASE_IMAGE
+        - FRONTEND_PORT
+    ports:
+      - "3030:3030"
+    env_file: .env
+    networks:
+      - net-192.168.21.0
+
+  mcp:
+    image: automaestro/mcp
+    build:
+      context: .
+      dockerfile: packages/mcp/Dockerfile
+      args:
+        BASE_IMAGE: $BASE_IMAGE
+    container_name: mcp-server
+    ports:
+      - "5000:5000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env
+    networks:
+      net-10.8.0.0:
+        ipv4_address: 10.8.0.50
+      net-192.168.21.0:
+        ipv4_address: 192.168.21.50
+
+
+
+  db:
+    image: documentdb
+    build:
+      context: .
+      dockerfile: Dockerfile.database
+    container_name: documentdb-container
+    ports:
+      - "10260:10260"
+    environment:
+      - SKIP_INIT_DATA=true
+      - USERNAME=$DATABASE_USER
+      - PASSWORD=$DATABASE_PASS
+    env_file: .env
+    volumes:
+      - ./database:/data
+    networks:
+      net-192.168.21.0:
+        ipv4_address: 192.168.21.20
+
+
+# Note: seedlab services (hosts + Router) live in docker-compose.seed.yml
+
+networks:
+  groq-tunnel:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
+  
+  net-192.168.21.0:
+    name: net-192.168.21.0
+    ipam:
+      config:
+        - subnet: 192.168.21.0/24
+
+  net-10.8.0.0:
+    name: net-10.8.0.0
+    ipam:
+      config:
+        - subnet: 10.8.0.0/24

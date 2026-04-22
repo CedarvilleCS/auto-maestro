@@ -1,0 +1,146 @@
+{
+    "tools": [
+      {
+        "tool_title": "Proxychains",
+        "tool_type": "proxy",
+        "tool_tag": "pivoting",
+        "tools_description": "Central tool for routing connections through various proxies"
+      },
+      {
+        "tool_title": "Metasploit",
+        "tool_type": "framework",
+        "tool_tag": "pivoting",
+        "tools_description": "Exploitation framework with pivoting capabilities",
+        "standard_code": {
+          "type": "shell",
+          "code": "msf6 > use auxiliary/server/socks_proxy"
+        }
+      },
+      {
+        "tool_title": "Meterpreter",
+        "tool_type": "payload",
+        "tool_tag": "pivoting",
+        "tools_description": "Advanced payload with port forwarding capabilities",
+        "standard_code": {
+          "type": "shell",
+          "code": "meterpreter > portfwd add -l 3300 -p 3389 -r <IPaddressofTarget>"
+        }
+      },
+      {
+        "tool_title": "XFreeRDP",
+        "tool_type": "remote_desktop",
+        "tool_tag": "pivoting",
+        "tools_description": "Remote desktop client for connecting through tunnels",
+        "standard_code": {
+          "type": "shell",
+          "code": "xfreerdp /v:localhost:3300 /u:victor /p:pass@123"
+        }
+      },
+      {
+        "tool_title": "Socat",
+        "tool_type": "relay",
+        "tool_tag": "pivoting",
+        "tools_description": "Multipurpose relay for redirecting network connections",
+        "standard_code": {
+          "type": "shell",
+          "code": "socat TCP4-LISTEN:8080,fork TCP4:<IPaddressofAttackHost>:80"
+        }
+      },
+      {
+        "tool_title": "Rpivot",
+        "tool_type": "reverse_proxy",
+        "tool_tag": "pivoting",
+        "tools_description": "Reverse SOCKS proxy tool for pivoting",
+        "standard_code": {
+          "type": "shell",
+          "code": "python2.7 server.py --proxy-port 9050 --server-port 9999 --server-ip 0.0.0.0"
+        }
+      },
+      {
+        "tool_title": "Sshuttle",
+        "tool_type": "vpn",
+        "tool_tag": "pivoting",
+        "tools_description": "Transparent proxy server that works as a poor man's VPN",
+        "standard_code": {
+          "type": "shell",
+          "code": "sudo sshuttle -r ubuntu@10.129.202.64 172.16.5.0 -v"
+        }
+      },
+      {
+        "tool_title": "Dnscat",
+        "tool_type": "tunneling",
+        "tool_tag": "pivoting",
+        "tools_description": "Tool for creating encrypted command and control channels over DNS",
+        "standard_code": {
+          "type": "shell",
+          "code": "sudo ruby dnscat2.rb --dns host=10.10.14.18,port=53,domain=inlanefreight.local --no-cache"
+        }
+      },
+      {
+        "tool_title": "SocksOverRDP",
+        "tool_type": "proxy",
+        "tool_tag": "pivoting",
+        "tools_description": "Tool for creating SOCKS proxy over RDP connections",
+        "standard_code": {
+          "type": "shell",
+          "code": "regsvr32.exe SocksOverRDP-Plugin.dll"
+        }
+      },
+      {
+        "tool_title": "Ptunnel-ng",
+        "tool_type": "tunneling",
+        "tool_tag": "pivoting",
+        "tools_description": "ICMP tunneling tool that enables tunneling TCP connections",
+        "standard_code": {
+          "type": "shell",
+          "code": "sudo ./ptunnel-ng -r10.129.202.64 -R22"
+        }
+      },
+      {
+        "tool_title": "Mimikatz",
+        "tool_type": "credential_harvesting",
+        "tool_tag": "pivoting",
+        "tools_description": "Tool for extracting credentials from Windows memory"
+      },
+      {
+        "tool_title": "SSH Tunneling",
+        "tool_type": "tunneling",
+        "tool_tag": "pivoting",
+        "tools_description": "Using SSH for local, remote and dynamic port forwarding",
+        "standard_code": {
+          "type": "shell",
+          "code": "ssh -L 1234:localhost:3306 Ubuntu@<IPaddressofTarget>"
+        }
+      },
+      {
+        "tool_title": "Plink",
+        "tool_type": "tunneling",
+        "tool_tag": "pivoting",
+        "tools_description": "Windows command-line connection tool similar to SSH",
+        "standard_code": {
+          "type": "shell",
+          "code": "plink -D 9050 ubuntu@<IPaddressofTarget>"
+        }
+      },
+      {
+        "tool_title": "Netsh Portproxy",
+        "tool_type": "port_forwarding",
+        "tool_tag": "pivoting",
+        "tools_description": "Windows built-in tool for configuring port forwarding",
+        "standard_code": {
+          "type": "shell",
+          "code": "netsh.exe interface portproxy add v4tov4 listenport=8080 listenaddress=10.129.42.198 connectport=3389 connectaddress=172.16.5.25"
+        }
+      },
+      {
+        "tool_title": "Chisel",
+        "tool_type": "tunneling",
+        "tool_tag": "pivoting",
+        "tools_description": "Fast TCP/UDP tunnel over HTTP",
+        "standard_code": {
+          "type": "shell",
+          "code": "./chisel server -v -p 1234 --socks5"
+        }
+      }
+    ]
+  }

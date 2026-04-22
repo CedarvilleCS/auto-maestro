@@ -1,0 +1,29 @@
+[project]
+name = "automaestro"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["backend", "frontend", "mcp"]
+
+[dependency-groups]
+dev = ["ruff==0.14.5", "pre-commit==4.3.0", "pytest==8.4.2"]
+
+[tool.uv.sources]
+backend = { workspace = true }
+frontend = { workspace = true }
+mcp = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.ruff]
+extend-exclude = [".git", "__pycache__", "data"]
+
+line-length = 88
+indent-width = 4
+
+target-version = "py312"
+
+[tool.ruff.lint]
+extend-select = ["I", "E501"]

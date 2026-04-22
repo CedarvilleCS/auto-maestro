@@ -1,0 +1,503 @@
+{
+  "tools": [
+    {
+      "tool_title": "DNSenum",
+      "tool_type": "bruteforce",
+      "tool_tag": "enumeration",
+      "tools_description": "Bruteforces subdomains from a nameserver.",
+      "standard_code": {
+        "type": "shell",
+        "code": "dnsenum --dnsserver <nameserver FQDN/IP> --enum -p 0 -s 0 -f <wordlist> <TLD>"
+      }
+    },
+    {
+      "tool_title": "braa",
+      "tool_type": "bruteforce",
+      "tool_tag": "enumeration",
+      "tools_description": "Braa is used to bruteforce OIDs from a given community string.",
+      "standard_code": {
+        "type": "shell",
+        "code": "braa <community string>@<IP>:<OID Range>"
+      }
+    },
+    {
+      "tool_title": "DSQuery",
+      "tool_type": "query",
+      "tool_tag": "enumeration",
+      "tools_description": "DSQuery is a Windows utility distributed by default and often used in AD environments. It is a LOL solution with similar functionality to BloodHound and PowerView.",
+      "standard_code": {
+        "type": "powershell",
+        "code": "dsquery user # Search for domain users\ndsquery computer # Search for domain-joined machines\n\ndsquery * \"CN=Users,DC=INLANEFREIGHT,DC=LOCAL\" # Wildcard search for all objects in OU\ndsquery * -filter \"(&(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=32))\" -attr distinguishedName userAccountControl # Search for all users with PASSWD_NOTREQD set using userAccessControl\ndsquery * -filter \"(userAccountControl:1.2.840.113556.1.4.803:=8192)\" -limit 5 -attr sAMAccountName # Search for all Domain Controllers, limit 5"
+      }
+    },
+    {
+      "tool_title": "dig",
+      "tool_type": "query",
+      "tool_tag": "enumeration",
+      "tools_description": "Returns DNS records from a nameserver.",
+      "standard_code_versions": [
+        {
+          "description": "Standard query for A records",
+          "type": "shell",
+          "code": "dig <FQDN> @<nameserver FQDN/IP>"
+        },
+        {
+          "description": "Query for AAAA records",
+          "type": "shell",
+          "code": "dig aaaa <FQDN> @<nameserver FQDN/IP>"
+        },
+        {
+          "description": "Query for PTR records",
+          "type": "shell",
+          "code": "dig -x <IP> @<nameserver FQDN/IP>"
+        },
+        {
+          "description": "Query for all DNS records",
+          "type": "shell",
+          "code": "dig any <TLD> @<nameserver FQDN/IP>"
+        },
+        {
+          "description": "Perform DNS Zone Transfer",
+          "type": "shell",
+          "code": "dig axfr <TLD> @<nameserver FQDN/IP>"
+        }
+      ]
+    },
+    {
+      "tool_title": "enum4linux",
+      "tool_type": "query",
+      "tool_tag": "enumeration",
+      "tools_description": "Linux-based SMB enumeration tool. It works on Linux systems to enumerate SMB information.",
+      "standard_code_versions": [
+        {
+          "description": "Run all options except dictionary-based share name guessing",
+          "type": "shell",
+          "code": "enum4linux -a target-ip"
+        },
+        {
+          "description": "List usernames if allowed",
+          "type": "shell",
+          "code": "enum4linux -U target-ip"
+        },
+        {
+          "description": "Pull usernames from default RID range",
+          "type": "shell",
+          "code": "enum4linux -r target-ip"
+        },
+        {
+          "description": "List Windows shares",
+          "type": "shell",
+          "code": "enum4linux -S target-ip"
+        }
+      ]
+    },
+    {
+      "tool_title": "FFuf",
+      "tool_type": "bruteforce",
+      "tool_tag": "enumeration",
+      "tools_description": "FFuf bruteforces subdomains, directories, and more. It's extremely useful for fuzzing initial access via web applications.",
+      "standard_code_versions": [
+        {
+          "description": "VHost brute",
+          "type": "shell",
+          "code": "ffuf -w <wordlist> -u http://<IP> -H \"HOST: FUZZ.<FQDN>\" -fs 612"
+        },
+        {
+          "description": "Directory brute",
+          "type": "shell",
+          "code": "ffuf -w <wordlist> -u http://<IP>/FUZZ"
+        },
+        {
+          "description": "S3 Bucket brute",
+          "type": "shell",
+          "code": "ffuf -w <wordlist> -u http://FUZZ.s3.amazonaws.com"
+        }
+      ]
+    },
+    {
+      "tool_title": "GoBuster",
+      "tool_type": "bruteforce",
+      "tool_tag": "enumeration",
+      "tools_description": "GoBuster is a widely-used directory brute-forcing tool. We typically use it to discover hidden directories on web servers.",
+      "standard_code": {
+        "type": "shell",
+        "code": "gobuster dir -u <url or http://ipaddr:port> -w <path to your preferred wordlist>"
+      }
+    },
+    {
+      "tool_title": "Inveigh",
+      "tool_type": "interception",
+      "tool_tag": "enumeration",
+      "tools_description": "Inveigh is a very useful tool for intercepting and spoofing requests for domain resources. It requests authentication for network access and records the NetNTLMv2 hashes to be cracked offline with Hashcat.",
+      "standard_code_versions": [
+        {
+          "description": "Import Inveigh Module",
+          "type": "powershell",
+          "code": "Import-Module Inveigh.ps1"
+        },
+        {
+          "description": "Default listeners",
+          "type": "powershell",
+          "code": "Invoke-Inveigh -NBNS -HTTPS -IP <Local IP> -ConsoleOutput"
+        },
+        {
+          "description": "View captured hashes",
+          "type": "powershell",
+          "code": "Get-Inveigh"
+        }
+      ]
+    },
+    {
+      "tool_title": "Logman",
+      "tool_type": "query",
+      "tool_tag": "enumeration",
+      "tools_description": "Logman queries ETW providers for information about executions on the target machine.",
+      "standard_code_versions": [
+        {
+          "description": "Query all ETW Providers",
+          "type": "powershell",
+          "code": "logman query providers"
+        },
+        {
+          "description": "Query details for one provider",
+          "type": "powershell",
+          "code": "logman query providers <Provider name or GUID>"
+        }
+      ]
+    },
+    {
+      "tool_title": "nslookup",
+      "tool_type": "query",
+      "tool_tag": "enumeration",
+      "tools_description": "Retrieve DNS records from a nameserver.",
+      "standard_code_versions": [
+        {
+          "description": "Retrieve standard DNS records",
+          "type": "shell",
+          "code": "nslookup <FQDN>"
+        },
+        {
+          "description": "Retrieve A records",
+          "type": "shell",
+          "code": "nslookup -query=A <FQDN>"
+        },
+        {
+          "description": "Retrieve PTR records",
+          "type": "shell",
+          "code": "nslookup -query=PTR <IP>"
+        }
+      ]
+    },
+    {
+      "tool_title": "Nessus Essentials",
+      "tool_type": "vulnerability scanner",
+      "tool_tag": "vulnerability assessment",
+      "tools_description": "Nessus Essentials is the free version of the Nessus vulnerability scanner. It identifies vulnerabilities in network devices, systems, and applications.",
+      "standard_code_versions": [
+        {
+          "description": "Install Nessus",
+          "type": "shell",
+          "code": "sudo dpkg -i <deb>"
+        },
+        {
+          "description": "Start Nessus service",
+          "type": "shell",
+          "code": "systemctl start nessusd"
+        }
+      ]
+    },
+    {
+      "tool_title": "OneSixtyOne",
+      "tool_type": "bruteforce",
+      "tool_tag": "SNMP enumeration",
+      "tools_description": "OneSixtyOne is a tool used to brute force SNMP community strings on network devices. It's useful for discovering misconfigured SNMP services.",
+      "standard_code": {
+        "type": "shell",
+        "code": "onesixtyone -c <wordlist> <IP>"
+      }
+    },
+    {
+      "tool_title": "PowerView",
+      "tool_type": "Active Directory Enumeration",
+      "tool_tag": "PowerShell",
+      "tools_description": "PowerView is a powerful suite of PowerShell tools for Active Directory enumeration and compromise. It is widely used for auditing and penetration testing of AD environments.",
+      "standard_code_versions": [
+        {
+          "description": "Enumerate user information",
+          "type": "powershell",
+          "code": "Get-DomainUser -Identity mmorgan -Domain inlanefreight.local | Select-Object -Property name,samaccountname,description,memberof,whencreated,pwdlastset,lastlogontimestamp,accountexpires,admincount,userprincipalname,serviceprincipalname,useraccountcontrol"
+        },
+        {
+          "description": "Get all members of a group",
+          "type": "powershell",
+          "code": "Get-DomainGroupMember -Identity <groupname> -Recurse"
+        },
+        {
+          "description": "Get SID from username",
+          "type": "powershell",
+          "code": "$sid = Convert-NameToSid <user>"
+        }
+      ]
+    },
+    {
+      "tool_title": "rpcclient",
+      "tool_type": "Remote Procedure Call Interaction",
+      "tool_tag": "Enumeration",
+      "tools_description": "rpcclient is a command-line tool for interacting with the Remote Procedure Call (RPC) service to enumerate information about machines or domains.",
+      "standard_code_versions": [
+        {
+          "description": "Establish NULL session",
+          "type": "shell",
+          "code": "rpcclient -U \"\" -N <DC_IP>"
+        },
+        {
+          "description": "List domain users and RIDs",
+          "type": "shell",
+          "code": "enumdomusers"
+        },
+        {
+          "description": "Query user details",
+          "type": "shell",
+          "code": "queryuser 500"
+        }
+      ]
+    },
+    {
+      "tool_title": "Responder",
+      "tool_type": "interception",
+      "tool_tag": "enumeration",
+      "tools_description": "Responder responds to broadcast or targeted queries for many types of servers with positive results and prompts authentication from Windows domains, allowing us to gain user hashes and potentially credentials from the network.",
+      "standard_code_versions": [
+        {
+          "description": "Passive mode; do not respond, only listen",
+          "type": "shell",
+          "code": "responder -I <interface> -A"
+        },
+        {
+          "description": "Poison all protocols (LLMNR, HTTP, SMB, NBT-NS, etc...)",
+          "type": "shell",
+          "code": "responder -I <interface> -v"
+        }
+      ]
+    },
+    {
+      "tool_title": "Rustscan",
+      "tool_type": "network scanner",
+      "tool_tag": "enumeration",
+      "tools_description": "Rustscan is a faster Nmap alternative. It is very loud and may generate copious alerts, making it less suitable for environments with active IDS/IPS. It supports multiple IP and CIDR scanning, scanning specific or multiple ports, adjusting Nmap arguments, and random port ordering. Detection Risk: High. Note: Rustscan is less stable than Nmap and may not be preferred for some tasks. It is especially useful for quickly scanning IP ranges but may be detected by security systems.",
+      "standard_code_versions": [
+        {
+          "description": "Multiple IP Scanning",
+          "type": "shell",
+          "code": "rustscan -a 127.0.0.1,0.0.0.0"
+        },
+        {
+          "description": "Host Scanning",
+          "type": "shell",
+          "code": "rustscan -a www.google.com, 127.0.0.1"
+        },
+        {
+          "description": "CIDR Scanning",
+          "type": "shell",
+          "code": "rustscan -a 192.168.0.0/30"
+        },
+        {
+          "description": "Scan Hosts from File",
+          "type": "shell",
+          "code": "rustscan -a 'hosts.txt'"
+        },
+        {
+          "description": "Individual Port Scanning",
+          "type": "shell",
+          "code": "rustscan -a 127.0.0.1 -p 53"
+        },
+        {
+          "description": "Multiple Selected Port Scanning",
+          "type": "shell",
+          "code": "rustscan -a 127.0.0.1 -p 53,80,121,65535"
+        },
+        {
+          "description": "Range of Ports Scanning",
+          "type": "shell",
+          "code": "rustscan -a 127.0.0.1 --range 1-1000"
+        },
+        {
+          "description": "Adjusting Nmap Arguments",
+          "type": "shell",
+          "code": "rustscan -a 127.0.0.1 -- -A -sC"
+        },
+        {
+          "description": "Random Port Ordering",
+          "type": "shell",
+          "code": "rustscan -a 127.0.0.1 --range 1-1000 --scan-order 'Random'"
+        }
+      ]
+    },
+    {
+      "tool_title": "SNMPWalk",
+      "tool_type": "query",
+      "tool_tag": "SNMP enumeration",
+      "tools_description": "SNMPWalk is used to query OIDs with their information. It is primarily used to gather information from devices that support SNMPv2c. Detection Risk: Medium. Note: Ensure you have proper authorization before performing SNMP scans as this can expose sensitive device configurations.",
+      "standard_code": {
+        "type": "shell",
+        "code": "snmpwalk -v2c -c public <IP> # Scan SNMPv2c for information"
+      }
+    },
+    {
+      "tool_title": "smbclient",
+      "tool_type": "interaction",
+      "tool_tag": "SMB enumeration",
+      "tools_description": "smbclient is a tool used for interacting with SMB shares. It can be used to list shares, interact with shares (both null-authenticated and authenticated), and move files with commands like 'put' and 'get'. Detection Risk: Medium. Note: SMB is commonly monitored by network security systems, so interactions with SMB shares may trigger alerts.",
+      "standard_code_versions": [
+        {
+          "description": "List shares (requires a password unless null auth (-N))",
+          "type": "shell",
+          "code": "smbclient -L \\\\<IP>"
+        },
+        {
+          "description": "Get a listing of files in a share",
+          "type": "shell",
+          "code": "echo exit | smbclient -U \"\" \\\\<IP>\\<SHARE>"
+        },
+        {
+          "description": "Interact with a share (null auth)",
+          "type": "shell",
+          "code": "smbclient -U \"\" -N \\\\<IP>\\<SHARE>"
+        },
+        {
+          "description": "Interact with a share (authenticated)",
+          "type": "shell",
+          "code": "smbclient -U <user> \\\\<IP>\\<SHARE>"
+        }
+      ]
+    },
+    {
+      "tool_title": "Snaffler",
+      "tool_type": "search",
+      "tool_tag": "credential enumeration",
+      "tools_description": "",
+      "standard_code_versions": [
+        {
+          "description": "",
+          "type": "powershell",
+          "code": ".\\Snaffler.exe -c All -s -v data"
+        }
+      ]
+    },
+    {
+      "tool_title": "SQLmap",
+      "tool_type": "automation",
+      "tool_tag": "SQLi exploitation",
+      "tools_description": "",
+      "standard_code_versions": [
+        {
+          "description": "",
+          "type": "shell",
+          "code": "sqlmap --url=\"<url>\" -p username --user-agent=SQLMAP --random-agent --threads=10 --risk=3 --level=5 --eta --dbms=MySQL --os=Linux --banner --is-dba --users --passwords --current-user --dbs"
+        },
+        {
+          "description": "",
+          "type": "shell",
+          "code": "sqlmap -r sqli.req --safe-url=http://10.10.10.10/ --mobile --safe-freq=1"
+        },
+        {
+          "description": "",
+          "type": "shell",
+          "code": "sqlmap -u \"http://example.com/\" --crawl=1 --random-agent --batch --forms --threads=5 --level=5 --risk=3"
+        }
+      ]
+    },
+    {
+      "tool_title": "Subbrute",
+      "tool_type": "bruteforce",
+      "tool_tag": "subdomain enumeration",
+      "tools_description": "Meta-query spider that speeds up resolution for subdomain bruteforcing. This tool bruteforces subdomains across only the resolvers that you provide. Gigabytes of DNS traffic is not subtle. Detection Risk: This tool generates large amounts of DNS traffic, which may trigger alerts on intrusion detection/prevention systems (IDS/IPS).",
+      "standard_code": {
+        "type": "shell",
+        "code": "subbrute.py -p <TLD> -s <wordlist> -r <list of resolvers/nameservers>"
+      }
+    },
+    {
+      "tool_title": "Whois",
+      "tool_type": "domainn information query",
+      "tool_tag": "enumeration",
+      "tools_description": "Whois returns passive information about the registration of a domain name using publicly available services. It can also retrieve information about a specific handle for a contact or just a domain name without its extension. This tool provides valuable data for reconnaissance in penetration testing and information gathering.",
+      "standard_code": {
+        "type": "shell",
+        "code": "whois <FQDN>"
+      }
+    },
+    {
+      "tool_title": "XFreeRDP",
+      "tool_type": "remote desktop client",
+      "tool_tag": "enumeration",
+      "tools_description": "XFreeRDP is a Linux command-line tool used to interact with Remote Desktop Protocol (RDP) on remote servers. It supports network authentication, proxies, smart cards, and drive mapping to facilitate interactions with remote systems. This tool can be used for remote access and file transfers across systems using RDP.",
+      "standard_code": [
+        {
+          "type": "shell",
+          "description": "Standard RDP connection",
+          "code": "xfreerdp /u:<username> /p:<password> /v:<IP>"
+        },
+        {
+          "type": "shell",
+          "description": "Pass-The-Hash authentication",
+          "code": "xfreerdp /u:<username> /pth:<NTLM hash> /v:<IP>"
+        },
+        {
+          "type": "shell",
+          "description": "Map a local drive to the remote machine",
+          "code": "xfreerdp /u:<username> /p:<password> /v:<IP> /drive:<local path>,<remote name>"
+        }
+      ]
+    },
+    {
+      "tool_title": "FPing",
+      "tool_type": "network scanner",
+      "tool_tag": "reconnaissance",
+      "tools_description": "FPing is a tool used for quick ICMP subnet sweeps and host identification.",
+      "standard_code": {
+        "type": "shell",
+        "description": "Quick ICMP subnet sweep and host identification",
+        "code": "fping -asgq <subnet in CIDR>"
+      }
+    },
+    {
+      "tool_title": "Nmap",
+      "tool_type": "network scanner",
+      "tool_tag": "reconnaissance",
+      "tools_description": "Nmap is a network scanning tool used for network exploration and security auditing. It can be used to discover hosts and services on a computer network and create a 'map' of the network. It supports a wide variety of scanning options for various use cases, such as host discovery, port scanning, service enumeration, and OS detection.",
+      "standard_code": [
+        {
+          "code": "nmap -sn -n -vv -oN <scan outfile> <subnet>",
+          "description": "Quick network host discovery with minimal noise\n- Flags:\n  - `-sn`: Ping scan only (no port scanning)\n  - `-n`: No DNS resolution (speeds up scan)\n  - `-vv`: Very verbose output\n  - `-oN`: Save output in normal format to specified file\n- Use case: Initial enumeration to find live hosts on a network"
+        },
+        {
+          "code": "nmap -T4 -p- -vv -oN <scan outfile> --disable-arp-ping -Pn -n <target>",
+          "description": "Full port scan (all 65535 ports) optimized for speed\n- Flags:\n  - `-T4`: Aggressive timing template\n  - `-p-`: Scan all ports\n  - `-vv`: Very verbose output\n  - `--disable-arp-ping`: Skip ARP discovery\n  - `-Pn`: Skip host discovery (treat all hosts as online)\n  - `-n`: No DNS resolution\n- Use case: Complete port enumeration when you know the target is alive"
+        },
+        {
+          "code": "nmap -sC -sV -p <port1,port2> -vv -oN <scan outfile> <target>",
+          "description": "Detailed service and version detection on specific ports\n- Flags:\n  - `-sC`: Run default scripts\n  - `-sV`: Version detection\n  - `-p`: Specify ports to scan\n  - `-vv`: Very verbose output\n- Use case: Deep inspection of specific ports to identify services and versions"
+        },
+        {
+          "code": "nmap -p <port> --script=<service>* -oN <scan outfile> <target>",
+          "description": "Run all scripts related to a specific service\n- Flags:\n  - `-p`: Specify port to scan\n  - `--script=<service>*`: Run all scripts related to specified service\n  - `-oN`: Save output in normal format\n- Use case: In-depth service-specific vulnerability scanning"
+        },
+        {
+          "code": "nmap --disable-arp-ping -n -g 53 -Pn --max-rate=10 -p <port> -oN <scan outfile> <target> -vv",
+          "description": "Stealthy scan designed to evade detection\n- Flags:\n  - `--disable-arp-ping`: Skip ARP discovery\n  - `-n`: No DNS resolution\n  - `-g 53`: Use source port 53 (appears as DNS traffic)\n  - `-Pn`: Skip host discovery\n  - `--max-rate=10`: Limit to 10 packets per second\n  - `-p`: Specify port to scan\n  - `-vv`: Very verbose output\n- Use case: Evasive scanning when trying to avoid detection by IDS/IPS systems"
+        }
+      ]
+    },
+    {
+      "tool_title": "ScareCrow",
+      "tool_type": "evasion",
+      "tool_tag": "evasion",
+      "tools_description": "ScareCrow packages shellcode inside binaries utilizing many known evasion methods to obfuscate, encrypt, and otherwise evade detection methods. Many techniques in Evasion are used, as well as more, like signing binaries, etc.",
+      "standard_code": {
+        "type": "shell",
+        "code": "./ScareCrow -I <shellcode path> -etw -domain www.microsoft.com # Basic shellcode packaging"
+      }
+    }
+  ]
+}

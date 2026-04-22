@@ -1,0 +1,24 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+scripts/document_scrapers/scraped_raw_docs/
+chroma_db/*
+!chroma_db/.gitkeep
+
+# Ruff cache
+.ruff_cache/
+
+# Virtual environments
+.venv
+
+# Local environment
+.env
+.env.dev
+database/
+
+# Sandbox bash runtime config
+sandbox_setup/Hosts/bashrc

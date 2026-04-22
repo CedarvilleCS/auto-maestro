@@ -1,0 +1,22 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Contains the backend web application that orchestrates the LLM and communicates with the DB, frontend, and MCP server."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]==0.116.1",
+    "pydantic-settings==2.12.0",
+    "aiohttp==3.12.15",
+    "websockets==15.0.1",
+    "ansi==0.3.7",
+    "pymongo==4.15.5",
+    "langchain-core==0.3.75",
+    "langchain-groq==0.3.7",
+    "langchain-openai==0.3.32",
+    "langgraph==0.6.7",
+    "pydantic==2.12.4",
+    "chromadb==1.3.5",
+    "sentence-transformers==5.1.2",
+    "beautifulsoup4>=4.12.3",
+    "requests>=2.32.3",
+]

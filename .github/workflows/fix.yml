@@ -1,0 +1,28 @@
+name: Fix
+on: [ issue_comment ]
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.issue.pull_request }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/github-script@v8
+        id: check_comment
+        with:
+          script: |
+            const body = (context.payload.comment && context.payload.comment.body || '').trim().toLowerCase();
+            const match = body.startsWith('/run-fix');
+            return { match };
+      - name: Check output
+        run: echo ${{ steps.check_comment.outputs.result.match }}
+      - name: Run ruff when comment matches
+        if: ${{ steps.check_comment.outputs.result.match == 'true' }}
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: "--version"
+      - name: Run ruff check
+        if: ${{ steps.check_comment.outputs.result.match == 'true' }}
+        run: ruff check --fix
+      - name: Run ruff format
+        if: ${{ steps.check_comment.outputs.result.match == 'true' }}
+        run: ruff format --diff
